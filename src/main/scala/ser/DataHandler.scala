@@ -1,7 +1,6 @@
 package ser
 
 import scala.reflect._
-import breeze.linalg._
 
 abstract class DataHandler[A: ClassTag] {
 
@@ -16,24 +15,6 @@ abstract class DataHandler[A: ClassTag] {
       case "f4" => data.asInstanceOf[Array[Float]].map(convertElement)
       case "f8" => data.asInstanceOf[Array[Double]].map(convertElement)
       case dtype => throw new Exception(s"unsupported type '$dtype'")
-    }
-  }
-
-  def mkDenseVector(header: NpyHeader, data: Array[_]): DenseVector[A] = {
-    require(header.numDims == 1, "wrong number of dimensions")
-    new DenseVector(mkArray(header, data))
-  }
-
-  def mkDenseMatrix(header: NpyHeader, data: Array[_]): DenseMatrix[A] = {
-    require(header.numDims == 2, "wrong number of dimensions")
-    val array = mkArray(header, data)
-    if (header.fortranOrder) {
-      // column-major order
-      new DenseMatrix(header.shape(0), header.shape(1), array)
-    } else {
-      // row-major order
-      val matrix = new DenseMatrix(header.shape(1), header.shape(0), array)
-      matrix.t
     }
   }
 
