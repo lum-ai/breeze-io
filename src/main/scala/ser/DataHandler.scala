@@ -1,7 +1,6 @@
 package ser
 
 import scala.reflect._
-import scala.reflect.runtime.universe._
 import breeze.linalg._
 
 abstract class DataHandler[A: ClassTag] {
