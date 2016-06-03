@@ -21,7 +21,6 @@ abstract class DataHandler[A: ClassTag] {
 
   def mkDenseVector(header: NpyHeader, data: Array[_]): DenseVector[A] = {
     require(header.numDims == 1, "wrong number of dimensions")
-    val array = mkArray(header, data)
     new DenseVector(mkArray(header, data))
   }
 
