@@ -11,11 +11,7 @@ class NpyHeader(
   val typeParser = """^[<=>]?(\w\d*)$""".r
 
   val dtype: String = descr match {
-    case typeParser(dataType) => dataType match {
-      case "i" => "i4"
-      case "f" => "f4"
-      case t => t
-    }
+    case typeParser(dataType) => dataType
   }
 
   val numDims: Int = shape.length

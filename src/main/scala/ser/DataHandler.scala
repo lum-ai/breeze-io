@@ -10,9 +10,9 @@ abstract class DataHandler[A: ClassTag] {
     header.dtype match {
       case "i1" | "b" => data.asInstanceOf[Array[Byte]].map(convertElement)
       case "i2" => data.asInstanceOf[Array[Short]].map(convertElement)
-      case "i4" | "u1" | "u2" => data.asInstanceOf[Array[Int]].map(convertElement)
+      case "i4" | "i" | "u1" | "u2" => data.asInstanceOf[Array[Int]].map(convertElement)
       case "i8" | "u4" => data.asInstanceOf[Array[Long]].map(convertElement)
-      case "f4" | "f2" => data.asInstanceOf[Array[Float]].map(convertElement)
+      case "f4" | "f" | "f2" => data.asInstanceOf[Array[Float]].map(convertElement)
       case "f8" => data.asInstanceOf[Array[Double]].map(convertElement)
       case dtype => throw new Exception(s"unsupported type '$dtype'")
     }
