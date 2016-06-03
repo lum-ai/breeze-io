@@ -28,6 +28,12 @@ class NpyHeader(
     case _ => ByteOrder.nativeOrder()
   }
 
+  override def toString: String = {
+    val fortran = if (fortranOrder) "True" else "False"
+    val shapeStr = if (numDims == 1) shape(0) + "," else shape.mkString(", ")
+    s"{'descr': '$descr', 'fortran_order': $fortran, 'shape': ($shapeStr), }"
+  }
+
 }
 
 object NpyHeader {
