@@ -36,11 +36,7 @@ class Npy {
   def readData(header: NpyHeader, bb: ByteBuffer): Array[_] = {
     bb.order(header.byteOrder)
     header.dtype match {
-      // case "b" =>
-      //   val data = new Array[Byte](header.numElems)
-      //   bb.get(data)
-      //   data.map(_ != 0)
-      case "i1" =>
+      case "i1" | "b" =>
         val data = new Array[Byte](header.numElems)
         bb.get(data)
         data

@@ -9,7 +9,7 @@ abstract class DataHandler[A: ClassTag] {
 
   def mkArray(header: NpyHeader, data: Array[_]): Array[A] = {
     header.dtype match {
-      case "i1" => data.asInstanceOf[Array[Byte]].map(convertElement)
+      case "i1" | "b" => data.asInstanceOf[Array[Byte]].map(convertElement)
       case "i2" => data.asInstanceOf[Array[Short]].map(convertElement)
       case "i4" => data.asInstanceOf[Array[Int]].map(convertElement)
       case "i8" => data.asInstanceOf[Array[Long]].map(convertElement)
