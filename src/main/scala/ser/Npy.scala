@@ -1,5 +1,6 @@
 package ser
 
+import java.lang.Float.intBitsToFloat
 import java.nio.{ ByteOrder, ByteBuffer }
 import java.nio.charset.StandardCharsets
 
@@ -55,15 +56,25 @@ class Npy {
         val data = new Array[Long](header.numElems)
         dataBuffer.get(data)
         data
-      // case "u1" => ??? // uint8
-      // case "u2" => ??? // uint16
-      // case "u4" => ??? // uint32
-      // case "u8" => ??? // uint64
-      // case "f2" =>
-      //   val dataBuffer = bb.asShortBuffer()
-      //   val data = new Array[Short](header.numElems)
-      //   dataBuffer.get(data)
-      //   data.map(n => Float.intBitsToFloat(n.toInt))
+      case "u1" =>
+        val data = new Array[Byte](header.numElems)
+        bb.get(data)
+        data.map(_ & 0xFF)
+      case "u2" =>
+        val dataBuffer = bb.asShortBuffer()
+        val data = new Array[Short](header.numElems)
+        dataBuffer.get(data)
+        data.map(_ & 0xFFFF)
+      case "u4" =>
+        val dataBuffer = bb.asIntBuffer()
+        val data = new Array[Int](header.numElems)
+        dataBuffer.get(data)
+        data.map(_ & 0xFFFFFFFFL)
+      case "f2" =>
+        val dataBuffer = bb.asShortBuffer()
+        val data = new Array[Short](header.numElems)
+        dataBuffer.get(data)
+        data.map(n => intBitsToFloat(n.toInt))
       case "f4" =>
         val dataBuffer = bb.asFloatBuffer()
         val data = new Array[Float](header.numElems)
@@ -74,6 +85,7 @@ class Npy {
         val data = new Array[Double](header.numElems)
         dataBuffer.get(data)
         data
+      // case "u8" => ??? // uint64
       // case "f16" => ??? // float128
       case dtype => throw new Exception(s"unsupported type '$dtype'")
     }
