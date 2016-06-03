@@ -29,11 +29,11 @@ class Npy {
     val header = NpyHeader(headerString)
     require(header.numDims <= 2, "too many dimensions")
     // read data
-    val data = readData(bb, header)
+    val data = readData(header, bb)
     new NpyTensor(header, data)
   }
 
-  def readData(bb: ByteBuffer, header: NpyHeader): Array[_] = {
+  def readData(header: NpyHeader, bb: ByteBuffer): Array[_] = {
     bb.order(header.byteOrder)
     header.dtype match {
       // case "b" =>
