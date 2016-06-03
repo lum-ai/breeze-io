@@ -4,31 +4,6 @@ import java.io._
 import java.nio.{ ByteOrder, ByteBuffer }
 import java.nio.charset.StandardCharsets
 import org.apache.commons.io.IOUtils
-import breeze.linalg._
-
-case class NpyHeader(descr: String, fortranOrder: Boolean, shape: Array[Int]) {
-
-  val typeParser = """^[<=>]?(\w\d*)$""".r
-
-  val dtype: String = descr match {
-    case typeParser(dataType) => dataType match {
-      case "i" => "i4"
-      case "f" => "f4"
-      case t => t
-    }
-  }
-
-  val numDims: Int = shape.length
-
-  val numElems: Int = if (shape.isEmpty) 1 else shape.product
-
-  val byteOrder: ByteOrder = descr.head match {
-    case '>' => ByteOrder.BIG_ENDIAN
-    case '<' => ByteOrder.LITTLE_ENDIAN
-    case _ => ByteOrder.nativeOrder()
-  }
-
-}
 
 class Npy {
 
@@ -53,18 +28,11 @@ class Npy {
     val headerBytes = new Array[Byte](headerLength)
     bb.get(headerBytes)
     val headerString = new String(headerBytes, StandardCharsets.US_ASCII)
-    val header = parseHeader(headerString)
+    val header = NpyHeader(headerString)
     require(header.numDims <= 2, "too many dimensions")
     // read data
     val data = readData(bb, header)
-    if (header.fortranOrder) {
-      // column-major order
-      new DenseMatrix(header.shape(0), header.shape(1), data)
-    } else {
-      // row-major order
-      val matrix = new DenseMatrix(header.shape(1), header.shape(0), data)
-      matrix.t
-    }
+    new NpyTensor(header, data)
   }
 
   def readData(bb: ByteBuffer, header: NpyHeader): Array[_] = {
@@ -117,17 +85,8 @@ class Npy {
     }
   }
 
-  def parseHeader(headerString: String) = {
-    val pattern = """'descr': '([^']+)', 'fortran_order': (True|False), 'shape': \(([^)]+?),?\)""".r.unanchored
-    headerString match {
-      case pattern(descr, fortranOrderString, shapeString) =>
-        val fortranOrder = fortranOrderString == "True"
-        val shape = shapeString.trim.split(", ").map(_.toInt)
-        NpyHeader(descr, fortranOrder, shape)
-      case _ => throw new Exception("wrong header")
-    }
-  }
 
+  // FIXME move to package object?
   def readBytes(path: String): ByteBuffer = readBytes(new File(path))
 
   def readBytes(file: File): ByteBuffer = {
