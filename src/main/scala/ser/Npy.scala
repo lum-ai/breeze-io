@@ -1,13 +1,11 @@
 package ser
 
-import java.io._
 import java.nio.{ ByteOrder, ByteBuffer }
 import java.nio.charset.StandardCharsets
-import org.apache.commons.io.IOUtils
 
 class Npy {
 
-  def read(path: String) = {
+  def read(path: String): NpyTensor = {
     // read bytes
     val bb = readBytes(path)
     // check first byte in magic string
@@ -83,17 +81,6 @@ class Npy {
       // case "f16" => ??? // float128
       case dtype => throw new Exception(s"unsupported type '$dtype'")
     }
-  }
-
-
-  // FIXME move to package object?
-  def readBytes(path: String): ByteBuffer = readBytes(new File(path))
-
-  def readBytes(file: File): ByteBuffer = {
-    val in = new FileInputStream(file)
-    val array = IOUtils.toByteArray(in)
-    in.close()
-    ByteBuffer.wrap(array)
   }
 
 }
