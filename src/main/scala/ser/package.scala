@@ -10,6 +10,7 @@ package object ser {
   implicit val longHandler = new LongHandler
   implicit val floatHandler = new FloatHandler
   implicit val doubleHandler = new DoubleHandler
+  implicit val booleanHandler = new BooleanHandler
 
   def readBytes(path: String): ByteBuffer = readBytes(new File(path))
 
