@@ -46,7 +46,7 @@ class Npy {
         val data = new Array[Short](header.numElems)
         dataBuffer.get(data)
         data
-      case "i4" =>
+      case "i4" | "i" =>
         val dataBuffer = bb.asIntBuffer()
         val data = new Array[Int](header.numElems)
         dataBuffer.get(data)
@@ -75,7 +75,7 @@ class Npy {
         val data = new Array[Short](header.numElems)
         dataBuffer.get(data)
         data.map(n => intBitsToFloat(n.toInt))
-      case "f4" =>
+      case "f4" | "f" =>
         val dataBuffer = bb.asFloatBuffer()
         val data = new Array[Float](header.numElems)
         dataBuffer.get(data)
