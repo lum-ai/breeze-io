@@ -99,16 +99,32 @@ class Npy {
   }
 
   def write[A: DataHandler](file: File, mat: DenseMatrix[A]): Unit = {
-    val shape = Array(mat.rows, mat.cols)
+    val array = mkDataArray(mat.data, Array(mat.rows, mat.cols), !mat.isTranspose)
+    FileUtils.writeByteArrayToFile(file, array)
+  }
+
+  def write[A: DataHandler](path: String, vec: DenseVector[A]): Unit = {
+    write(new File(path), vec)
+  }
+
+  def write[A: DataHandler](file: File, vec: DenseVector[A]): Unit = {
+    val array = mkDataArray(vec.data, Array(vec.length), true)
+    FileUtils.writeByteArrayToFile(file, array)
+  }
+
+  def mkDataArray[A: DataHandler](
+      data: Array[A],
+      shape: Array[Int],
+      order: Boolean
+  ): Array[Byte] = {
     val handler = implicitly[DataHandler[A]]
     if (handler.descr.isEmpty) throw new Exception("can't serialize type")
     val descr = ">" + handler.descr.get
-    val order = !mat.isTranspose
     val header = new NpyHeader(descr, order, shape)
+    val headerStr = header.toString
     val remaining = (header.toString.length + 11) % 16
     val padLen = if (remaining > 0) 16 - remaining else 0
-    val headerLen = header.toString.length + padLen + 1
-
+    val headerLen = headerStr.length + padLen + 1
     val bodySize = header.numElems * handler.sizeInBytes.get
     val size = header.toString.length + 11 + padLen + bodySize
     val array = new Array[Byte](size)
@@ -121,8 +137,8 @@ class Npy {
     bb.put(header.toString.getBytes)
     bb.put(Array.fill(padLen)(' '.toByte))
     bb.put('\n'.toByte)
-    bb.put(handler.toByteArray(mat.data))
-    FileUtils.writeByteArrayToFile(file, array)
+    bb.put(handler.toByteArray(data))
+    array
   }
 
 }
