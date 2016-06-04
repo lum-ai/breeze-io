@@ -1,8 +1,11 @@
 package ser
 
+import java.io.File
 import java.lang.Float.intBitsToFloat
 import java.nio.{ ByteOrder, ByteBuffer }
 import java.nio.charset.StandardCharsets
+import org.apache.commons.io.FileUtils
+import breeze.linalg._
 
 class Npy {
 
@@ -89,6 +92,37 @@ class Npy {
       // case "f16" => ??? // float128
       case dtype => throw new Exception(s"unsupported type '$dtype'")
     }
+  }
+
+  def write[A: DataHandler](path: String, mat: DenseMatrix[A]): Unit = {
+    write(new File(path), mat)
+  }
+
+  def write[A: DataHandler](file: File, mat: DenseMatrix[A]): Unit = {
+    val shape = Array(mat.rows, mat.cols)
+    val handler = implicitly[DataHandler[A]]
+    if (handler.descr.isEmpty) throw new Exception("can't serialize type")
+    val descr = ">" + handler.descr.get
+    val order = !mat.isTranspose
+    val header = new NpyHeader(descr, order, shape)
+    val remaining = (header.toString.length + 11) % 16
+    val padLen = if (remaining > 0) 16 - remaining else 0
+    val headerLen = header.toString.length + padLen + 1
+
+    val bodySize = header.numElems * handler.sizeInBytes.get
+    val size = header.toString.length + 11 + padLen + bodySize
+    val array = new Array[Byte](size)
+    val bb = ByteBuffer.wrap(array)
+    bb.put(Array(0x93.toByte, 'N'.toByte, 'U'.toByte, 'M'.toByte, 'P'.toByte,
+      'Y'.toByte, 1.toByte, 0.toByte))
+    bb.order(ByteOrder.LITTLE_ENDIAN)
+    bb.putShort(headerLen.toShort)
+    bb.order(ByteOrder.BIG_ENDIAN)
+    bb.put(header.toString.getBytes)
+    bb.put(Array.fill(padLen)(' '.toByte))
+    bb.put('\n'.toByte)
+    bb.put(handler.toByteArray(mat.data))
+    FileUtils.writeByteArrayToFile(file, array)
   }
 
 }

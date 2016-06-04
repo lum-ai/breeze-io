@@ -1,19 +1,26 @@
 package ser
 
 import scala.reflect._
+import java.nio.{ ByteOrder, ByteBuffer }
 
 abstract class DataHandler[A: ClassTag] {
 
-  def convertElement[B](elem: B): A
+  // these methods are useful for matrix serialization
+  def descr: Option[String] = None
+  def sizeInBytes: Option[Int] = None
+
+  def convert[B](elem: B): A
+
+  def toByteArray(data: Array[A]): Array[Byte]
 
   def mkArray(header: NpyHeader, data: Array[_]): Array[A] = {
     header.dtype match {
-      case "i1" | "b" => data.asInstanceOf[Array[Byte]].map(convertElement)
-      case "i2" => data.asInstanceOf[Array[Short]].map(convertElement)
-      case "i4" | "i" | "u1" | "u2" => data.asInstanceOf[Array[Int]].map(convertElement)
-      case "i8" | "u4" => data.asInstanceOf[Array[Long]].map(convertElement)
-      case "f4" | "f" | "f2" => data.asInstanceOf[Array[Float]].map(convertElement)
-      case "f8" => data.asInstanceOf[Array[Double]].map(convertElement)
+      case "i1" | "b" => data.asInstanceOf[Array[Byte]].map(convert)
+      case "i2" => data.asInstanceOf[Array[Short]].map(convert)
+      case "i4" | "i" | "u1" | "u2" => data.asInstanceOf[Array[Int]].map(convert)
+      case "i8" | "u4" => data.asInstanceOf[Array[Long]].map(convert)
+      case "f4" | "f" | "f2" => data.asInstanceOf[Array[Float]].map(convert)
+      case "f8" => data.asInstanceOf[Array[Double]].map(convert)
       case dtype => throw new Exception(s"unsupported type '$dtype'")
     }
   }
@@ -21,11 +28,18 @@ abstract class DataHandler[A: ClassTag] {
 }
 
 class BooleanHandler extends DataHandler[Boolean] {
-  def convertElement[B](elem: B): Boolean = elem != 0
+  override def descr: Option[String] = Some("b")
+  override def sizeInBytes: Option[Int] = Some(1)
+  def convert[B](elem: B): Boolean = elem != 0
+  def toByteArray(data: Array[Boolean]): Array[Byte] = {
+    data.map(if (_) 1.toByte else 0.toByte)
+  }
 }
 
 class ByteHandler extends DataHandler[Byte] {
-  def convertElement[B](elem: B): Byte = elem match {
+  override def descr: Option[String] = Some("i1")
+  override def sizeInBytes: Option[Int] = Some(1)
+  def convert[B](elem: B): Byte = elem match {
     case n: Byte => n
     case n: Short => n.toByte
     case n: Int => n.toByte
@@ -33,10 +47,13 @@ class ByteHandler extends DataHandler[Byte] {
     case n: Float => n.toByte
     case n: Double => n.toByte
   }
+  def toByteArray(data: Array[Byte]): Array[Byte] = data
 }
 
 class ShortHandler extends DataHandler[Short] {
-  def convertElement[B](elem: B): Short = elem match {
+  override def descr: Option[String] = Some("i2")
+  override def sizeInBytes: Option[Int] = Some(2)
+  def convert[B](elem: B): Short = elem match {
     case n: Byte => n.toShort
     case n: Short => n
     case n: Int => n.toShort
@@ -44,10 +61,20 @@ class ShortHandler extends DataHandler[Short] {
     case n: Float => n.toShort
     case n: Double => n.toShort
   }
+  def toByteArray(data: Array[Short]): Array[Byte] = {
+    val array = new Array[Byte](data.length * sizeInBytes.get)
+    val bb = ByteBuffer.wrap(array)
+    bb.order(ByteOrder.BIG_ENDIAN)
+    val sb = bb.asShortBuffer()
+    sb.put(data)
+    array
+  }
 }
 
 class IntHandler extends DataHandler[Int] {
-  def convertElement[B](elem: B): Int = elem match {
+  override def descr: Option[String] = Some("i4")
+  override def sizeInBytes: Option[Int] = Some(4)
+  def convert[B](elem: B): Int = elem match {
     case n: Byte => n.toInt
     case n: Short => n.toInt
     case n: Int => n
@@ -55,10 +82,20 @@ class IntHandler extends DataHandler[Int] {
     case n: Float => n.toInt
     case n: Double => n.toInt
   }
+  def toByteArray(data: Array[Int]): Array[Byte] = {
+    val array = new Array[Byte](data.length * sizeInBytes.get)
+    val bb = ByteBuffer.wrap(array)
+    bb.order(ByteOrder.BIG_ENDIAN)
+    val sb = bb.asIntBuffer()
+    sb.put(data)
+    array
+  }
 }
 
 class LongHandler extends DataHandler[Long] {
-  def convertElement[B](elem: B): Long = elem match {
+  override def descr: Option[String] = Some("i8")
+  override def sizeInBytes: Option[Int] = Some(8)
+  def convert[B](elem: B): Long = elem match {
     case n: Byte => n.toLong
     case n: Short => n.toLong
     case n: Int => n.toLong
@@ -66,10 +103,20 @@ class LongHandler extends DataHandler[Long] {
     case n: Float => n.toLong
     case n: Double => n.toLong
   }
+  def toByteArray(data: Array[Long]): Array[Byte] = {
+    val array = new Array[Byte](data.length * sizeInBytes.get)
+    val bb = ByteBuffer.wrap(array)
+    bb.order(ByteOrder.BIG_ENDIAN)
+    val sb = bb.asLongBuffer()
+    sb.put(data)
+    array
+  }
 }
 
 class FloatHandler extends DataHandler[Float] {
-  def convertElement[B](elem: B): Float = elem match {
+  override def descr: Option[String] = Some("f4")
+  override def sizeInBytes: Option[Int] = Some(4)
+  def convert[B](elem: B): Float = elem match {
     case n: Byte => n.toFloat
     case n: Short => n.toFloat
     case n: Int => n.toFloat
@@ -77,15 +124,33 @@ class FloatHandler extends DataHandler[Float] {
     case n: Float => n
     case n: Double => n.toFloat
   }
+  def toByteArray(data: Array[Float]): Array[Byte] = {
+    val array = new Array[Byte](data.length * sizeInBytes.get)
+    val bb = ByteBuffer.wrap(array)
+    bb.order(ByteOrder.BIG_ENDIAN)
+    val sb = bb.asFloatBuffer()
+    sb.put(data)
+    array
+  }
 }
 
 class DoubleHandler extends DataHandler[Double] {
-  def convertElement[B](elem: B): Double = elem match {
+  override def descr: Option[String] = Some("f8")
+  override def sizeInBytes: Option[Int] = Some(8)
+  def convert[B](elem: B): Double = elem match {
     case n: Byte => n.toDouble
     case n: Short => n.toDouble
     case n: Int => n.toDouble
     case n: Long => n.toDouble
     case n: Float => n.toDouble
     case n: Double => n
+  }
+  def toByteArray(data: Array[Double]): Array[Byte] = {
+    val array = new Array[Byte](data.length * sizeInBytes.get)
+    val bb = ByteBuffer.wrap(array)
+    bb.order(ByteOrder.BIG_ENDIAN)
+    val sb = bb.asDoubleBuffer()
+    sb.put(data)
+    array
   }
 }
