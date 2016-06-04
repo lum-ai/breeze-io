@@ -10,8 +10,12 @@ import breeze.linalg._
 class Npy {
 
   def read(path: String): NpyTensor = {
+    read(new File(path))
+  }
+
+  def read(file: File): NpyTensor = {
     // read bytes
-    val bb = readBytes(path)
+    val bb = readBytes(file)
     // check first byte in magic string
     require(bb.get() == 0x93.toByte, "wrong magic string")
     // check the rest of the magic string
