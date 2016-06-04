@@ -130,7 +130,7 @@ class Npy {
     val padLen = if (remaining > 0) 16 - remaining else 0
     val headerLen = headerStr.length + padLen + 1
     val dataBytes = handler.toByteArray(data)
-    val size = header.toString.length + 11 + padLen + dataBytes.length
+    val size = headerStr.length + 11 + padLen + dataBytes.length
     val array = new Array[Byte](size)
     val bb = ByteBuffer.wrap(array)
     bb.put(Array(0x93.toByte, 'N'.toByte, 'U'.toByte, 'M'.toByte, 'P'.toByte,
@@ -138,7 +138,7 @@ class Npy {
     bb.order(ByteOrder.LITTLE_ENDIAN)
     bb.putShort(headerLen.toShort)
     bb.order(ByteOrder.BIG_ENDIAN)
-    bb.put(header.toString.getBytes)
+    bb.put(headerStr.getBytes)
     bb.put(Array.fill(padLen)(' '.toByte))
     bb.put('\n'.toByte)
     bb.put(dataBytes)
