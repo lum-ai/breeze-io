@@ -8,14 +8,18 @@ class NpyTensor(val header: NpyHeader, val data: Array[_]) {
     implicitly[DataHandler[A]].mkArray(header, data)
   }
 
+  def isVector: Boolean = header.numDims == 1
+
+  def isMatrix: Boolean = header.numDims == 2
+
   def toDenseVector[A: DataHandler]: DenseVector[A] = {
-    require(header.numDims == 1, "wrong number of dimensions")
+    require(isVector, "wrong number of dimensions")
     val array = implicitly[DataHandler[A]].mkArray(header, data)
     new DenseVector(array)
   }
 
   def toDenseMatrix[A: DataHandler]: DenseMatrix[A] = {
-    require(header.numDims == 2, "wrong number of dimensions")
+    require(isMatrix, "wrong number of dimensions")
     val array = implicitly[DataHandler[A]].mkArray(header, data)
     if (header.fortranOrder) {
       // column-major order
