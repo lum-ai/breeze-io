@@ -1,7 +1,3 @@
-import java.io._
-import java.nio.ByteBuffer
-import org.apache.commons.io.IOUtils
-
 package object ser {
 
   implicit val byteHandler = new ByteHandler
@@ -11,14 +7,5 @@ package object ser {
   implicit val floatHandler = new FloatHandler
   implicit val doubleHandler = new DoubleHandler
   implicit val booleanHandler = new BooleanHandler
-
-  def readBytes(path: String): ByteBuffer = readBytes(new File(path))
-
-  def readBytes(file: File): ByteBuffer = {
-    val in = new FileInputStream(file)
-    val array = IOUtils.toByteArray(in)
-    in.close()
-    ByteBuffer.wrap(array)
-  }
 
 }

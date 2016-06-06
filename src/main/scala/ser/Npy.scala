@@ -1,10 +1,10 @@
 package ser
 
-import java.io.File
+import java.io._
 import java.lang.Float.intBitsToFloat
 import java.nio.{ ByteOrder, ByteBuffer }
 import java.nio.charset.StandardCharsets
-import org.apache.commons.io.FileUtils
+import org.apache.commons.io.{ IOUtils, FileUtils }
 import breeze.linalg._
 
 class Npy {
@@ -143,6 +143,17 @@ class Npy {
     bb.put('\n'.toByte)
     bb.put(dataBytes)
     array
+  }
+
+  def readBytes(path: String): ByteBuffer = {
+    readBytes(new File(path))
+  }
+
+  def readBytes(file: File): ByteBuffer = {
+    val in = new FileInputStream(file)
+    val array = IOUtils.toByteArray(in)
+    in.close()
+    ByteBuffer.wrap(array)
   }
 
 }
