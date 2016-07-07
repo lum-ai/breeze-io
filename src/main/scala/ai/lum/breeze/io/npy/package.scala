@@ -1,4 +1,6 @@
-package object ser {
+package ai.lum.breeze.io
+
+package object npy {
 
   implicit val byteHandler = new ByteHandler
   implicit val shortHandler = new ShortHandler

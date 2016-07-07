@@ -1,4 +1,4 @@
-package ser
+package ai.lum.breeze.io.npy
 
 import scala.reflect._
 import java.nio.{ ByteOrder, ByteBuffer }

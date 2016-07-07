@@ -1,6 +1,8 @@
-name := "ser"
+name := "breeze-io"
 
 version := "0.1-SNAPSHOT"
+
+organization := "ai.lum"
 
 scalaVersion := "2.11.8"
 

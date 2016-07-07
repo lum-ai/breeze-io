@@ -1,4 +1,4 @@
-package ser
+package ai.lum.breeze.io.npy
 
 import java.io._
 import java.lang.Float.intBitsToFloat
